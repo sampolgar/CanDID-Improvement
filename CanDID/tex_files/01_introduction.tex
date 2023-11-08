@@ -1,9 +1,74 @@
+Each dot point contains which party is sending what elements and a short description. \\
+1. Finish the scheme for master pk \& revocation/sanction/sybil resistance lists in overleaf \\
+2. Work through concrete instantiation \\
+3. Implement \& test
+\subsection{Generating a Credential}
+Credential generation involves multiple protocols and entities, split into 3 sections, 1) Porting Legacy Credentials to Pre-Credentials, 2) Pre-Credentials, and 3) Credential Generation.
+
+\subsubsection{Legacy Credentials:} DECO \& Town Crier are 2 protocols that enable legacy credentials to be used in online credentials. DECO is a 3-party protocol between Prover $P$, Verifier $V$, and TLS Server $S$, $P$ convinces $V$ some data (possibly private to $P$) retrieved from $S$ satisfies a predicate $Pred$. DECO uses MPC to protect data and authenticity, ZKP to prove a predicate is satisfied, and distributed $V$ to decentralize the protocol.
+
+\subsubsection{Pre-Credentials:} are used to create Credentials. A claim is a tuple $claim = \{a,v,P\}$ where $a$ is an attribute, $v$ is a value, or hiding commitment to the value e.g. $Com(v,r)$, $P$ is the provider. $PC = (claim, \pi)$ is a verifiable Pre-Credential where $\pi$ is a signature by the committee attesting to the claim satisfying. The signature signature verifies the authenticity of the pre-credential information $Pred$.\\
+
+To generate a PC, a user $U$ picks at least $t$ committee nodes $(C_1,...,C_T)$ and executes DECO to prove their Legacy Credential $claims$ are authentic and satisfy $Pred$. $C_i$ verifies DECO proofs and generates partial $\pi_i = Sig_{sk_i}(claims)$, $U$ combines $t$ shares of $\pi_i$ to form $\pi$, the signature over the Pre-Credential that proves the attributes, values, and Provider match $Pred$ requirements. Each $PC$ can have multiple attributes and values from the same provider. \\
+
+Depending on the master credential schema requirement, the PC, or multiple PC, is used to generate the master credential. 
+
+\subsection{System Setup} 
+Let \( a \) be the attribute used for deduplication, e.g., a government ID such as the US Social Security Number (SSN). The system is setup with credential schema with defined attributes and credential structure.
+The Committee consists of \( n \) nodes \( (C_1, \ldots, C_n) \) and a Threshold Signature Scheme \( \text{TS} = (\text{TS.KGen}, \text{Sig}, \text{Comb}, \text{Vf}) \) used by the committee to issue credentials and the execute a Threshold Multi-Party Computation Pseudo Random Function $MPC_{PRF}$.
+
 \begin{itemize}
-\item \textbf{Setup:}
+    
+    \item \textbf{IDTable} is initialized by each committee member; it will contain a tuple with the deduplication attribute/s in hidden $PRF_{Ci}(SSN)$ form and the users public key $PK_U$
+    
+    \item \textbf{Choose deduplication attributes} System admin selects dedup attributes $Attr = \{a_1, \ldots, a_k\}$.
+
+    \item \textbf{Revocation List} is hosted by the system and available publicly containing $NYM_P$ or $PK_U$ and $PRF_{Ci}(name, dob)$
+
+    \item \textbf{Sanction List} is a public list provided by governments containing the name, dob, and address of sanctioned individuals and will be available to the system.
+    
+    \item \textbf{ContextTable} is initialized by each committee member and stores a mapping between the
+    $\{PRF_{Ci}(name, dob)$, $NYM_P$, $context\}$
+    used for context-specific deduplication and revocation.
+    
+\end{itemize}
+
+\subsection{User Setup} 
+
+\begin{itemize}
+
+    \item \textbf{Key Generation:} $(PK_U, SK_U) \leftarrow Setup(1^\lambda)$ Instantiated by the user locally to generate their identity.
+    
+    \item \textbf{Pseudonym Generation:} (only applicable for context credential) user generates $nonce \leftarrow \mathbb{F}$, then generates a pseudonym $NYM_P \leftarrow PRF_{SK_U}(nonce)$
+and proof of correct nym generation $\pi = ZKPoK\{SK_U : NYM_P = PRF_{SK_U}(nonce)\}$
+
+\end{itemize}
+
+\subsection{Master Credential Issuance}
+
+\subsubsection{Deduplication}: User blinds their deduplication attribute value and with a multi-party computation, computes a PRF representation for deduplication. \\
+
+$U$ generates Pre-Credentials (PCs) with deduplication attribute value $v$. $U$ interacts with the committee nodes to hide $v$, in the form $\mathnormal{\hat{v}}$$= PRF(SK_C,v)$ for inserting into the IDtable $\phi$. $U$ sends $[v]$, a sharing of $v$ by committee nodes $\{C_i\}^n_{i=1}$, each node $C_i$ has $v_i$ such that $v=\Sigma_i\lambda_iv_i$ where $\lambda's$ are Lagrange coefficients 
+
+\begin{itemize}
+
+    \item \textit{}
+    
+\end{itemize}
+
+
+
+
+
+
+
+\begin{itemize}
+\item \textbf{Setup:} 
        \begin{itemize}
             \item \textit{$Attr = \{a_1, \ldots, a_k\}$. Choose deduplication attributes.}
+            \item \textit{Generate credential schema with defined attributes and credential structure}
             \item \textit{Initialize a public revocation list $RL$.}
-            \item \textit{Committee initializes a private IDTable $IDT$.}
+            \item \textit{Committee initializes a private IDTable $:=\phi$.}
         \end{itemize}
 \end{itemize}
 

@@ -1,0 +1,71 @@
+\begin{itemize}
+\item \textbf{Setup:}
+       \begin{itemize}
+            \item \textit{$Attr = \{a_1, \ldots, a_k\}$. Choose deduplication attributes.}
+            \item \textit{Initialize a public revocation list $RL$.}
+            \item \textit{Committee initializes a private IDTable $IDT$.}
+        \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Key Generation:} \textit{keyGen$(1^\lambda) \rightarrow (pk, sk)$}:  Could be instantiated by the user locally for $pk_U^{master}$ or by the committee nodes in a distributed fashion $pk_C$. We assume $pk_C$ is public
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Nym Generation:} \textit{nymGen$(1^\lambda, sk_U) \rightarrow (nym^{context}, nym^{context}_{verify})$}: Instantiated by the user locally to generate a pseudonym for a context credential
+\end{itemize}
+
+
+\begin{itemize}
+\item \textbf{Pre-credential Generation:} \textit{The protocol used could be either DECO or Town Crier.}
+    \begin{itemize}
+    \item \textbf{For Master Credential:} \textit{issuePreCred$(pk_U^{master}, \text{Stmt}) \rightarrow \pi$}
+    \item \textbf{For Context Credential:} \textit{issuePreCred$(nym^{context}, \text{Stmt}) \rightarrow \pi$}
+    \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{issueMasterCred: \( (sk_C, sk_U^{master}, pk_U^{master}, \{({claim}_i, \pi_i)\}_{i=1}^k) \rightarrow {cred_{master}} \)}: Master credential issuance. Instantiated in a distributed fashion between the committee nodes. The credential has an identifier \( pk_U^{master} \), \( k \) input claims, and a special \textit{dedupOver} claim.
+    \begin{itemize}
+        \item \textbf{Deduplication}
+        \begin{align*}
+            \textit{let username} &= \textit{MPC}_{\text{PRF}}(\text{name, dob}) \\
+            \textit{Verify username} &\notin L
+        \end{align*}
+    
+        \item \textbf{Sanctions Screening}
+        \begin{align*}
+            \textit{let username} &= \textit{MPC}_{\text{PRF}}(\text{name, dob}) \\
+            \pi &= \text{ZK-PoK} \{username, \, SL: username \notin SL\} \\
+            \text{Verify}(SL, \pi) &= 
+            \begin{cases}
+                \text{"accept"} & \text{if } \pi \text{ proves that } username \notin SL \\
+                \text{"reject"} & \text{otherwise}
+            \end{cases}
+        \end{align*}
+    \end{itemize}
+    
+    \item \textbf{Show Master Cred (Privately/anonymously)}\\
+    The user needs to prove they have a valid master credential signed by the committee. The user can prove this by generating a proof of valid signature.
+    \begin{align*}
+        \pi &= \textbf{NIZK-PoK}\{\sigma_{m}, C, \text{pk}_{\text{U}} : \sigma_{m} = (\text{sk}_{\text{c}}, C) \wedge C = \text{Com}(\text{pk}_{\text{U}}, r)\} \\
+        \textbf{Witness} &\quad (\sigma_{m}, C, \text{pk}_{\text{U}}, r) \\
+        \textbf{Statement:} &\quad \sigma_{m} \text{ is a valid signature on } C, \text{ and } C \text{ is a commitment to } \text{pk}_{\text{U}}\\
+    \end{align*}
+\end{itemize}
+
+
+\begin{itemize}
+\item \textbf{Verify Master Cred}
+\begin{align*}
+    \pi &= \textbf{NIZK-PoK}\{\sigma_{m}, C, \text{pk}_{\text{U}} : \sigma_{m} = (\text{sk}_{\text{c}}, C) \wedge C = \text{Com}(\text{pk}_{\text{U}}, r)\} \\
+    \text{Witness:} &\quad (\sigma_{m}, C, \text{pk}_{\text{U}}, r) \\
+    \text{Statement:} &\quad \sigma_{m} \text{ is a valid signature on } C, \text{ and } C \text{ is a commitment to } \text{pk}_{\text{U}} \\
+    \text{Verify}(\sigma_{m}, C, \text{pk}_{\text{U}}, \pi) &= 
+    \begin{cases}
+        \text{"accept"} & \text{if } \pi \text{ proves that } \sigma_{m} \text{ is valid and } \ C \text{ is a commitment to } \text{pk}_{\text{U}} \\
+        \text{"reject"} & \text{otherwise}
+    \end{cases}
+\end{align*}
+
+\end{itemize}

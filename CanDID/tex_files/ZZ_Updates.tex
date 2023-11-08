@@ -1,0 +1,118 @@
+\subsubsection{Update 9 October}
+Discussed 2 approaches to CanDID improvement:
+1) As-is, with the committee using MPC for privacy
+2) Single Server / On-chain
+
+Current 
+\begin{itemize}
+    \item Master Credential
+\end{itemize}
+\begin{itemize}
+    \item Revocation
+    \item Sanctions Screening: 
+\end{itemize}
+
+
+Let \( a \) be the attribute used for deduplication, e.g., a government ID such as the US Social Security Number (SSN).
+
+The Committee consists of \( n \) nodes \( (C_1, \ldots, C_n) \) and a Threshold Signature Scheme \( \text{TS} = (\text{TS.KGen}, \text{Sig}, \text{Comb}, \text{Vf}) \) used by the committee to issue credentials and the execute a Threshold Multi-Party Computation Pseudo Random Function (MPC\_PRF).
+
+\begin{itemize}
+    
+    \item \textbf{IDTable} is initialized by each committee member; it will contain the deduplication attribute/s in hidden MPC\_PRF form with the user public key in the form \( (\text{MPC\_PRF(SSN)}, \text{pku}) \).
+    
+    \item \textbf{Choose deduplication attributes} $Attr = \{a_1, \ldots, a_k\}$. \
+    
+    \item \textbf{ContextTable} is initialized by each committee member and stores a mapping between the \( (\text{MPC\_PRF(name, dob)}, \text{nym\_p}, \text{contextname}) \) used for context-specific deduplication and revocation.
+    
+    \item \textbf{Revocation List} is hosted by the system and available publicly containing \( (\text{nym\_p} \text{ or } \text{pku}) \) and \( \text{MPC\_PRF(name, dob)} \).
+    
+    \item \textbf{Sanction List} is a public list shared internationally containing name, dob, address, and sometimes SSN, and will be available to the system. The system will be available for any updates and can revoke system users.
+    
+\end{itemize}
+
+\subsubsection{Key Generation:} \textit{keyGen$(1^\lambda) \rightarrow (pk, sk)$}:  Could be instantiated by the user locally for $pk_U^{master}$ or by the committee nodes in a distributed fashion $pk_C$. We assume $pk_C$ is public
+
+\subsubsection{Pseudonym Generation:} \textit{nymGen$(1^\lambda) \rightarrow (nym_{pub}, nym_{priv} )$}: Following principles from Hierarchical Identity-Based Encryption, the user generates a 
+
+Could be instantiated by the user locally for $pk_U^{master}$ or by the committee nodes in a distributed fashion $pk_C$. We assume $pk_C$ is public
+
+
+
+
+
+
+
+
+
+\begin{itemize}
+\item \textbf{Setup:}
+       \begin{itemize}
+            \item \textit{$Attr = \{a_1, \ldots, a_k\}$. Choose deduplication attributes.}
+            \item \textit{Initialize a public revocation list $RL$.}
+            \item \textit{Committee initializes a private IDTable $IDT$.}
+        \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Key Generation:} \textit{keyGen$(1^\lambda) \rightarrow (pk, sk)$}:  Could be instantiated by the user locally for $pk_U^{master}$ or by the committee nodes in a distributed fashion $pk_C$. We assume $pk_C$ is public
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Nym Generation:} \textit{nymGen$(1^\lambda, sk_U) \rightarrow (nym^{context}, nym^{context}_{verify})$}: Instantiated by the user locally to generate a pseudonym for a context credential
+\end{itemize}
+
+
+\begin{itemize}
+\item \textbf{Pre-credential Generation:} \textit{The protocol used could be either DECO or Town Crier.}
+    \begin{itemize}
+    \item \textbf{For Master Credential:} \textit{issuePreCred$(pk_U^{master}, \text{Stmt}) \rightarrow \pi$}
+    \item \textbf{For Context Credential:} \textit{issuePreCred$(nym^{context}, \text{Stmt}) \rightarrow \pi$}
+    \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{issueMasterCred: \( (sk_C, sk_U^{master}, pk_U^{master}, \{({claim}_i, \pi_i)\}_{i=1}^k) \rightarrow {cred_{master}} \)}: Master credential issuance. Instantiated in a distributed fashion between the committee nodes. The credential has an identifier \( pk_U^{master} \), \( k \) input claims, and a special \textit{dedupOver} claim.
+    \begin{itemize}
+        \item \textbf{Deduplication}
+        \begin{align*}
+            \textit{let username} &= \textit{MPC}_{\text{PRF}}(\text{name, dob}) \\
+            \textit{Verify username} &\notin L
+        \end{align*}
+    
+        \item \textbf{Sanctions Screening}
+        \begin{align*}
+            \textit{let username} &= \textit{MPC}_{\text{PRF}}(\text{name, dob}) \\
+            \pi &= \text{ZK-PoK} \{username, \, SL: username \notin SL\} \\
+            \text{Verify}(SL, \pi) &= 
+            \begin{cases}
+                \text{"accept"} & \text{if } \pi \text{ proves that } username \notin SL \\
+                \text{"reject"} & \text{otherwise}
+            \end{cases}
+        \end{align*}
+    \end{itemize}
+    
+    \item \textbf{Show Master Cred (Privately/anonymously)}\\
+    The user needs to prove they have a valid master credential signed by the committee. The user can prove this by generating a proof of valid signature.
+    \begin{align*}
+        \pi &= \textbf{NIZK-PoK}\{\sigma_{m}, C, \text{pk}_{\text{U}} : \sigma_{m} = (\text{sk}_{\text{c}}, C) \wedge C = \text{Com}(\text{pk}_{\text{U}}, r)\} \\
+        \textbf{Witness} &\quad (\sigma_{m}, C, \text{pk}_{\text{U}}, r) \\
+        \textbf{Statement:} &\quad \sigma_{m} \text{ is a valid signature on } C, \text{ and } C \text{ is a commitment to } \text{pk}_{\text{U}}\\
+    \end{align*}
+\end{itemize}
+
+
+\begin{itemize}
+\item \textbf{Verify Master Cred}
+\begin{align*}
+    \pi &= \textbf{NIZK-PoK}\{\sigma_{m}, C, \text{pk}_{\text{U}} : \sigma_{m} = (\text{sk}_{\text{c}}, C) \wedge C = \text{Com}(\text{pk}_{\text{U}}, r)\} \\
+    \text{Witness:} &\quad (\sigma_{m}, C, \text{pk}_{\text{U}}, r) \\
+    \text{Statement:} &\quad \sigma_{m} \text{ is a valid signature on } C, \text{ and } C \text{ is a commitment to } \text{pk}_{\text{U}} \\
+    \text{Verify}(\sigma_{m}, C, \text{pk}_{\text{U}}, \pi) &= 
+    \begin{cases}
+        \text{"accept"} & \text{if } \pi \text{ proves that } \sigma_{m} \text{ is valid and } \ C \text{ is a commitment to } \text{pk}_{\text{U}} \\
+        \text{"reject"} & \text{otherwise}
+    \end{cases}
+\end{align*}
+
+\end{itemize}
